@@ -1,0 +1,10 @@
+[package]
+name = "harold"
+version = "0.1.0"
+authors = ["Dyllon Chowdhury <dyllonrc@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+rodio = "0.8.1"
+reqwest = "0.9.11"
+acc_reader = "2.0.0"
