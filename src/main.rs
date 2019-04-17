@@ -101,7 +101,16 @@ fn play_from_user(name: String) {
    let sink = Sink::new(&device);
                                                                                       
    let ar = AccReader::new(reqwest::get(&link[..]).unwrap());
-   let source = rodio::Decoder::new(ar).unwrap();
+   let source_opt = rodio::Decoder::new(ar);
+
+   if source_opt.is_err() {
+       println!("Format wasn't supported!");
+       sink.append(rodio::source::SineWave::new(440));
+       thread::sleep(Duration::new(1, 0));
+       return;
+   }
+
+   let source = source_opt.unwrap();
 
    let mut duration = match source.total_duration() {
        Some(x) => x,
