@@ -68,7 +68,7 @@ fn ibutton_loop(reader: &mut BufReader<File>) {
     //let dummy = user.split_off(2);
     //user = user + "000" + &dummy + "01";
     print!("{}\n", user);
-    user = process_ibutton(&("*".to_string() + &user)).unwrap();
+    user = process_ibutton(&("*".to_string() + &user + "01")).unwrap();
     play_from_user(user);
 
 }
