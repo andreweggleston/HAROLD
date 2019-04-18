@@ -1,7 +1,7 @@
 #include <OneWire.h>
 
 
-OneWire  ds(12);
+OneWire ds(12);
 byte addr[8];
 String keyStatus="";
 
@@ -16,14 +16,15 @@ void loop(void) {
   if (digitalRead(11) == LOW) {
     digitalWrite(11,HIGH);
   }
-  getKeyCode();  
+  getKeyCode();
   if(keyStatus=="ok"){
       byte i;
-      for( i = 7; i >0; i--) {
+      for( i = 7; i>0; i--) {
            //Serial.print(":");
            Serial.print(addr[i], HEX);           
       }
-      Serial.println();
+      Serial.print('\n');
+      delay(29000);
   }
   else if (keyStatus!="") { Serial.print(keyStatus);}
 
@@ -36,13 +37,12 @@ void getKeyCode(){
   byte present = 0;
   byte data[12];
   keyStatus="";
-  
-  if ( !ds.search(addr)) {
-      Serial.print("");
+
+  if (!ds.search(addr)) {
       ds.reset_search();
       return;
   }
-
+  
   digitalWrite(11, LOW);
   if ( OneWire::crc8( addr, 7) != addr[7]) {
       keyStatus="CRC invalid";
@@ -56,3 +56,4 @@ void getKeyCode(){
   keyStatus="ok";
   ds.reset();
 }
+
