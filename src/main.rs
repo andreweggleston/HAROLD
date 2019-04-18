@@ -1,14 +1,12 @@
-use rodio::Sink;
-use rodio::Source;
 use std::io;
-use std::io::{BufReader, BufRead, Read, Write};
+use std::io::{BufReader, BufRead, Write};
 use std::fs::File;
 use reqwest;
-use acc_reader::AccReader;
 use std::env;
 use ldap3::{LdapConn, Scope, SearchEntry};
 use std::{thread};
 use std::time::Duration;
+use std::process::Command;
 
 //TODO: alot
 fn main() -> std::io::Result<()> {
@@ -16,10 +14,10 @@ fn main() -> std::io::Result<()> {
     let args: Vec<String> = env::args().collect();
 
     if args.len() > 1 && args[1] == "ibutton" {
+        let f = File::open("/dev/ttyACM0")?;
+        let mut reader = BufReader::new(f);
         loop {
-            let f = File::open("/dev/ttyACM0")?;
-            let reader = BufReader::new(f);
-            ibutton_loop(reader);
+            ibutton_loop(&mut reader);
         }
     } else {
         loop {
@@ -60,21 +58,18 @@ fn process_ibutton(id: &str) -> Result<String, &str> {
     Err("ofug")
 }
 
-fn ibutton_loop(mut reader: BufReader<File>) {
+fn ibutton_loop(reader: &mut BufReader<File>) {
 
     let mut user = String::new();
     print!("Waiting for valid ibutton input! > ");
     io::stdout().flush().unwrap();
     reader.read_line(&mut user).expect("Error reading the line!");
     user.pop();
-    let mut dummy = user.split_off(2);
-    user = user + "00" + &dummy;
+    let dummy = user.split_off(2);
+    user = user + "000" + &dummy + "01";
     print!("{}\n", user);
     user = process_ibutton(&user).unwrap();
     play_from_user(user);
-
-    //clear extra lines
-    reader.read_to_string(&mut dummy);
 
 }
 
@@ -88,6 +83,7 @@ fn uid_loop() {
     user.pop();
     play_from_user(user);
 
+    println!("uid_loop() is ending!");
 }
 
 fn play_from_user(name: String) {
@@ -105,46 +101,66 @@ fn play_from_user(name: String) {
        .send().expect("Did not post right")
        .text().expect("link text was not valid");
    println!("the link given was {}", link);
+
+
+   let full_play = "ffplay -nodisp '".to_owned() + &link + "'";
+
+   println!("{}", full_play);
+
+   thread::spawn(|| {
+       Command::new("bash")
+           .arg("-c")
+            .arg(full_play)
+            .output()
+            .expect("failed to execute process");
+   });
+
+   thread::sleep(Duration::new(31, 0));
+
+   thread::spawn(|| {
+       Command::new("bash")
+            .arg("-c")
+            .arg("killall 'ffplay'")
+            .output()
+            .expect("failed to execute process");
+   });
                                                                                       
-   let device = rodio::default_output_device().expect("Audio device failed to find");
-   let sink = Sink::new(&device);
-                                                                                      
-   let ar = AccReader::new(reqwest::get(&link[..]).unwrap());
-   let source_opt = rodio::Decoder::new(ar);
+   //let ar = AccReader::new(reqwest::get(&link[..]).unwrap());
+   //let source_opt = rodio::Decoder::new(ar);
 
-   if source_opt.is_err() {
-       println!("Format wasn't supported!");
-       sink.append(rodio::source::SineWave::new(440));
-       thread::sleep(Duration::new(1, 0));
-       return;
-   }
+   //if source_opt.is_err() {
+   //    println!("Format wasn't supported!");
+   //    sink.append(rodio::source::SineWave::new(440));
+   //    thread::sleep(Duration::new(1, 0));
+   //    return;
+   //}
 
-   let source = source_opt.unwrap();
+   //let source = source_opt.unwrap();
 
-   let mut duration = match source.total_duration() {
-       Some(x) => x,
-       None => Duration::new(30, 0)
-   };
+   //let mut duration = match source.total_duration() {
+   //    Some(x) => x,
+   //    None => Duration::new(30, 0)
+   //};
 
-   if source.total_duration().is_none() {
-       println!("Duration not given, blocking for 30s");
-   } else {
-       let as_secs = duration.as_secs();
-       println!("Duration was {}", as_secs);
-       if as_secs > 30 {
-           duration = Duration::new(30, 0);
-           println!("Duration was over 30 seconds, capping at 30");
-       }
-   }
+   //if source.total_duration().is_none() {
+   //    println!("Duration not given, blocking for 30s");
+   //} else {
+   //    let as_secs = duration.as_secs();
+   //    println!("Duration was {}", as_secs);
+   //    if as_secs > 30 {
+   //        duration = Duration::new(30, 0);
+   //        println!("Duration was over 30 seconds, capping at 30");
+   //    }
+   //}
 
-   let message = match source.current_frame_len() {
-       Some(x) => format!("frame len: {}", x),
-       None => "frame length not given".to_string()
-   };
-   println!("{}", message);
+   //let message = match source.current_frame_len() {
+   //    Some(x) => format!("frame len: {}", x),
+   //    None => "frame length not given".to_string()
+   //};
+   //println!("{}", message);
 
-   println!("sample rate is {}", source.sample_rate());
+   //println!("sample rate is {}", source.sample_rate());
 
-   sink.append(source);
-   thread::sleep(duration);
+   //sink.append(source);
+   //thread::sleep(duration);
 }
