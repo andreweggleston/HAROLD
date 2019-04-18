@@ -65,10 +65,10 @@ fn ibutton_loop(reader: &mut BufReader<File>) {
     io::stdout().flush().unwrap();
     reader.read_line(&mut user).expect("Error reading the line!");
     user.pop();
-    let dummy = user.split_off(2);
-    user = user + "000" + &dummy + "01";
+    //let dummy = user.split_off(2);
+    //user = user + "000" + &dummy + "01";
     print!("{}\n", user);
-    user = process_ibutton(&user).unwrap();
+    user = process_ibutton(&("*".to_string() + &user)).unwrap();
     play_from_user(user);
 
 }
