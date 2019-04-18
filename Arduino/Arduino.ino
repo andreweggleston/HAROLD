@@ -19,7 +19,7 @@ void loop(void) {
   getKeyCode();
   if(keyStatus=="ok"){
       byte i;
-      for( i = 7; i>0; i--) {
+      for( i = 5; i>0; i--) {
            //Serial.print(":");
            Serial.print(addr[i], HEX);           
       }
