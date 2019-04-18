@@ -1,5 +1,5 @@
 use std::io;
-use std::io::{BufReader, BufRead, Write};
+use std::io::{BufReader, BufRead, Write, BufWriter};
 use std::fs::File;
 use reqwest;
 use std::env;
@@ -70,7 +70,13 @@ fn ibutton_loop(reader: &mut BufReader<File>) {
     print!("{}\n", user);
     user = process_ibutton(&("*".to_string() + &user + "01")).unwrap();
     play_from_user(user);
-
+    
+    Command::new("bash")
+        .arg("-c")
+        .args(&["cat", "1", ">", "/dev/ACM0"])
+        .output()
+        .expect("Error writing to Arduino");
+    
 }
 
 fn uid_loop() {
@@ -103,27 +109,26 @@ fn play_from_user(name: String) {
    println!("the link given was {}", link);
 
 
-   let full_play = "ffplay -nodisp '".to_owned() + &link + "'";
+   let full_play = "vlc -I dummy --play-and-exit --stop-time 30 '".to_owned() + &link + "'";
 
    println!("{}", full_play);
 
-   thread::spawn(|| {
-       Command::new("bash")
-           .arg("-c")
-            .arg(full_play)
-            .output()
-            .expect("failed to execute process");
-   });
+    Command::new("bash")
+        .arg("-c")
+        .arg(full_play)
+        .output()
+        .expect("failed to execute process");
 
-   thread::sleep(Duration::new(31, 0));
 
-   thread::spawn(|| {
-       Command::new("bash")
-            .arg("-c")
-            .arg("killall 'ffplay'")
-            .output()
-            .expect("failed to execute process");
-   });
+   //thread::sleep(Duration::new(31, 0));
+
+   //thread::spawn(|| {
+   //    Command::new("bash")
+   //         .arg("-c")
+   //         .arg("killall 'vlc'")
+   //         .output()
+   //         .expect("failed to execute process");
+   //});
                                                                                       
    //let ar = AccReader::new(reqwest::get(&link[..]).unwrap());
    //let source_opt = rodio::Decoder::new(ar);

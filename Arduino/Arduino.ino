@@ -24,7 +24,7 @@ void loop(void) {
            Serial.print(addr[i], HEX);           
       }
       Serial.print('\n');
-      delay(29000);
+      Serial.read();
   }
   else if (keyStatus!="") { Serial.print(keyStatus);}
 
@@ -56,4 +56,3 @@ void getKeyCode(){
   keyStatus="ok";
   ds.reset();
 }
-
