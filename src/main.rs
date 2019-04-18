@@ -1,7 +1,8 @@
 use rodio::Sink;
 use rodio::Source;
 use std::io;
-use std::io::Write;
+use std::io::{BufReader, BufRead, Read, Write};
+use std::fs::File;
 use reqwest;
 use acc_reader::AccReader;
 use std::env;
@@ -10,20 +11,23 @@ use std::{thread};
 use std::time::Duration;
 
 //TODO: alot
-fn main() {
-
+fn main() -> std::io::Result<()> {
 
     let args: Vec<String> = env::args().collect();
 
     if args.len() > 1 && args[1] == "ibutton" {
         loop {
-            ibutton_loop();
+            let f = File::open("/dev/ttyACM0")?;
+            let reader = BufReader::new(f);
+            ibutton_loop(reader);
         }
     } else {
         loop {
             uid_loop();
         }
     }
+
+    Ok(())
 
 }
 
@@ -56,16 +60,21 @@ fn process_ibutton(id: &str) -> Result<String, &str> {
     Err("ofug")
 }
 
-fn ibutton_loop() {
+fn ibutton_loop(mut reader: BufReader<File>) {
 
     let mut user = String::new();
-    print!("Enter a valid ibutton ID > ");
+    print!("Waiting for valid ibutton input! > ");
     io::stdout().flush().unwrap();
-    io::stdin().read_line(&mut user)
-        .expect("Error reading the line");
+    reader.read_line(&mut user).expect("Error reading the line!");
     user.pop();
+    let mut dummy = user.split_off(2);
+    user = user + "00" + &dummy;
+    print!("{}\n", user);
     user = process_ibutton(&user).unwrap();
     play_from_user(user);
+
+    //clear extra lines
+    reader.read_to_string(&mut dummy);
 
 }
 
