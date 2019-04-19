@@ -1,14 +1,11 @@
 use std::io;
-use std::io::{BufReader, BufRead, Write, BufWriter};
+use std::io::{BufReader, BufRead, Write};
 use std::fs::File;
 use reqwest;
 use std::env;
 use ldap3::{LdapConn, Scope, SearchEntry};
-use std::{thread};
-use std::time::Duration;
 use std::process::Command;
 
-//TODO: alot
 fn main() -> std::io::Result<()> {
 
     let args: Vec<String> = env::args().collect();
@@ -55,7 +52,7 @@ fn process_ibutton(id: &str) -> Result<String, &str> {
             return Ok(other_entry.to_string());
         }
     }
-    Err("ofug")
+    Err("No user found!")
 }
 
 fn ibutton_loop(reader: &mut BufReader<File>) {
@@ -68,14 +65,10 @@ fn ibutton_loop(reader: &mut BufReader<File>) {
     //let dummy = user.split_off(2);
     //user = user + "000" + &dummy + "01";
     print!("{}\n", user);
-    user = process_ibutton(&("*".to_string() + &user + "01")).unwrap();
-    play_from_user(user);
-    
-    Command::new("bash")
-        .arg("-c")
-        .args(&["cat", "1", ">", "/dev/ACM0"])
-        .output()
-        .expect("Error writing to Arduino");
+    user = match process_ibutton(&("*".to_string() + &user + "01"));
+    if user.is_ok() {
+        play_from_user(user);
+    }
     
 }
 
@@ -120,52 +113,3 @@ fn play_from_user(name: String) {
         .expect("failed to execute process");
 
 
-   //thread::sleep(Duration::new(31, 0));
-
-   //thread::spawn(|| {
-   //    Command::new("bash")
-   //         .arg("-c")
-   //         .arg("killall 'vlc'")
-   //         .output()
-   //         .expect("failed to execute process");
-   //});
-                                                                                      
-   //let ar = AccReader::new(reqwest::get(&link[..]).unwrap());
-   //let source_opt = rodio::Decoder::new(ar);
-
-   //if source_opt.is_err() {
-   //    println!("Format wasn't supported!");
-   //    sink.append(rodio::source::SineWave::new(440));
-   //    thread::sleep(Duration::new(1, 0));
-   //    return;
-   //}
-
-   //let source = source_opt.unwrap();
-
-   //let mut duration = match source.total_duration() {
-   //    Some(x) => x,
-   //    None => Duration::new(30, 0)
-   //};
-
-   //if source.total_duration().is_none() {
-   //    println!("Duration not given, blocking for 30s");
-   //} else {
-   //    let as_secs = duration.as_secs();
-   //    println!("Duration was {}", as_secs);
-   //    if as_secs > 30 {
-   //        duration = Duration::new(30, 0);
-   //        println!("Duration was over 30 seconds, capping at 30");
-   //    }
-   //}
-
-   //let message = match source.current_frame_len() {
-   //    Some(x) => format!("frame len: {}", x),
-   //    None => "frame length not given".to_string()
-   //};
-   //println!("{}", message);
-
-   //println!("sample rate is {}", source.sample_rate());
-
-   //sink.append(source);
-   //thread::sleep(duration);
-}
