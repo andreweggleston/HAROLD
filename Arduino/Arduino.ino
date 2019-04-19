@@ -24,7 +24,7 @@ void loop(void) {
            Serial.print(addr[i], HEX);           
       }
       Serial.print('\n');
-      Serial.read();
+      delay(3000);
   }
   else if (keyStatus!="") { Serial.print(keyStatus);}
 
