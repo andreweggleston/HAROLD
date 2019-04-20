@@ -22,7 +22,7 @@ fn main() -> std::io::Result<()> {
         }
     }
 
-    Ok(())
+    //Ok(())
 
 }
 
@@ -57,17 +57,18 @@ fn process_ibutton(id: &str) -> Result<String, &str> {
 
 fn ibutton_loop(reader: &mut BufReader<File>) {
 
-    let mut user = String::new();
+    let mut input = String::new();
     print!("Waiting for valid ibutton input! > ");
     io::stdout().flush().unwrap();
-    reader.read_line(&mut user).expect("Error reading the line!");
-    user.pop();
+    reader.read_line(&mut input).expect("Error reading the line!");
+    input.pop();
     //let dummy = user.split_off(2);
     //user = user + "000" + &dummy + "01";
-    print!("{}\n", user);
-    user = match process_ibutton(&("*".to_string() + &user + "01"));
+    print!("{}\n", input);
+    input = "*".to_string() + &input + "01";
+    let user = process_ibutton(&input);
     if user.is_ok() {
-        play_from_user(user);
+        play_from_user(user.unwrap());
     }
     
 }
@@ -111,5 +112,5 @@ fn play_from_user(name: String) {
         .arg(full_play)
         .output()
         .expect("failed to execute process");
-
+}
 
