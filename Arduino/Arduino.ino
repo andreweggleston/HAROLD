@@ -4,6 +4,9 @@
 OneWire ds(12);
 byte addr[8];
 String keyStatus="";
+bool from_rs;
+
+OneWire rs(13);
 
 
 void setup(void) {
@@ -20,9 +23,9 @@ void loop(void) {
   if(keyStatus=="ok"){
       byte i;
       for( i = 5; i>0; i--) {
-           //Serial.print(":");
            Serial.print(addr[i], HEX);           
       }
+      Serial.print(from_rs ? 'R' : 'S');
       Serial.print('\n');
       delay(3000);
   }
@@ -38,9 +41,15 @@ void getKeyCode(){
   byte data[12];
   keyStatus="";
 
+  from_rs = false;
+  
   if (!ds.search(addr)) {
       ds.reset_search();
-      return;
+      if (!rs.search(addr)) {
+          rs.reset_search();
+          return;
+      }
+      from_rs = true;
   }
   
   digitalWrite(11, LOW);
@@ -55,4 +64,5 @@ void getKeyCode(){
   }
   keyStatus="ok";
   ds.reset();
+  rs.reset();
 }
